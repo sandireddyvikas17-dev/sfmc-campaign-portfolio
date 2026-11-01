@@ -1,0 +1,11 @@
+SubscriberKey,EmailAddress,FirstName,LastName,SignupDate,SignupSource,PreferredStore,LoyaltyTier,Status
+alex.rivera@example.com,alex.rivera@example.com,Alex,Rivera,2026-10-31,web_form,Denver,Base,Active
+priya.nair@example.com,priya.nair@example.com,Priya,Nair,2026-10-30,web_form,Seattle,Gold,Active
+marcus.lee@example.com,marcus.lee@example.com,Marcus,Lee,2026-06-14,import,Austin,Silver,Active
+sofia.garcia@example.com,sofia.garcia@example.com,Sofia,Garcia,2026-03-02,pos,Denver,Base,Active
+james.okafor@example.com,james.okafor@example.com,James,Okafor,2025-11-19,web_form,Chicago,Gold,Active
+emma.lindqvist@example.com,emma.lindqvist@example.com,Emma,Lindqvist,2026-10-29,web_form,Portland,Base,Active
+noah.kim@example.com,noah.kim@example.com,Noah,Kim,2026-01-25,import,Seattle,Silver,Unsubscribed
+ava.patel@example.com,ava.patel@example.com,Ava,Patel,2026-08-08,web_form,Denver,Base,Active
+liam.obrien@example.com,liam.obrien@example.com,Liam,O'Brien,2026-05-30,pos,Austin,Base,Bounced
+mia.chen@example.com,mia.chen@example.com,Mia,Chen,2026-10-15,web_form,Seattle,Silver,Active
