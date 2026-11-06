@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<!--
+  Preference Center — CloudPage (Northwind Outfitters demo)
+  How it works:
+    1. Subscriber arrives from an email footer link carrying
+       ?sk=<SubscriberKey> (in production: a CloudPagesURL()
+       encrypted link, never a plain-text key).
+    2. AMPscript looks up current preferences and pre-checks
+       the form. Unknown key -> friendly error, no data shown.
+    3. On submit, the page posts to itself; AMPscript upserts
+       Preference_Center_DE and shows a confirmation.
+       "Paused" also takes effect in that night's suppression
+       build (SQL 04) — the promise on the page says so.
+-->
+<html lang="en">
+<head><meta charset="utf-8"><title>Northwind Outfitters — Email Preferences</title></head>
+<body style="font-family:Arial, sans-serif; margin:40px; max-width:560px;">
+
+%%[
+VAR @sk, @cadence, @iFoot, @iOuter, @iCamp, @iClimb, @found, @saved
+SET @sk = RequestParameter("sk")
+SET @saved = false
+
+IF RequestParameter("submitted") == "1" AND NOT EMPTY(@sk) THEN
+  UpsertDE("Preference_Center_DE", 1,
+    "SubscriberKey", @sk,
+    "Cadence", RequestParameter("cadence"),
+    "Interest_Footwear",  IIF(RequestParameter("int_footwear")  == "on", "true", "false"),
+    "Interest_Outerwear", IIF(RequestParameter("int_outerwear") == "on", "true", "false"),
+    "Interest_Camping",   IIF(RequestParameter("int_camping")   == "on", "true", "false"),
+    "Interest_Climbing",  IIF(RequestParameter("int_climbing")  == "on", "true", "false"),
+    "UpdatedDate", Now())
+  SET @saved = true
+ENDIF
+
+IF NOT EMPTY(@sk) THEN
+  SET @prefRows = LookupRows("Preference_Center_DE", "SubscriberKey", @sk)
+  IF RowCount(@prefRows) > 0 THEN
+    SET @found  = true
+    SET @row    = Row(@prefRows, 1)
+    SET @cadence = Field(@row, "Cadence")
+    SET @iFoot  = Field(@row, "Interest_Footwear")
+    SET @iOuter = Field(@row, "Interest_Outerwear")
+    SET @iCamp  = Field(@row, "Interest_Camping")
+    SET @iClimb = Field(@row, "Interest_Climbing")
+  ELSE
+    /* Known subscriber, no prefs saved yet — show defaults */
+    SET @found = RowCount(LookupRows("MASTER_Subscribers","SubscriberKey",@sk)) > 0
+    SET @cadence = "Weekly"
+  ENDIF
+ENDIF
+]%%
+
+<h1>Email preferences</h1>
+
+%%[ IF @saved THEN ]%%
+  <p><strong>Saved.</strong> Your changes apply from the next send.
+  If you paused emails, they stop tonight — no need to unsubscribe.</p>
+%%[ ENDIF ]%%
+
+%%[ IF @found THEN ]%%
+<form method="post" action="">
+  <input type="hidden" name="sk" value="%%=v(@sk)=%%">
+  <input type="hidden" name="submitted" value="1">
+
+  <p><strong>How often?</strong></p>
+  <label><input type="radio" name="cadence" value="Weekly"  %%[IF @cadence=="Weekly"  THEN]%%checked%%[ENDIF]%%> Weekly — the full program</label><br>
+  <label><input type="radio" name="cadence" value="Monthly" %%[IF @cadence=="Monthly" THEN]%%checked%%[ENDIF]%%> Monthly — one roundup</label><br>
+  <label><input type="radio" name="cadence" value="Paused"  %%[IF @cadence=="Paused"  THEN]%%checked%%[ENDIF]%%> Pause for 90 days</label>
+
+  <p><strong>What are you into?</strong></p>
+  <label><input type="checkbox" name="int_footwear"  %%[IF @iFoot  THEN]%%checked%%[ENDIF]%%> Footwear</label><br>
+  <label><input type="checkbox" name="int_outerwear" %%[IF @iOuter THEN]%%checked%%[ENDIF]%%> Outerwear</label><br>
+  <label><input type="checkbox" name="int_camping"   %%[IF @iCamp  THEN]%%checked%%[ENDIF]%%> Camping</label><br>
+  <label><input type="checkbox" name="int_climbing"  %%[IF @iClimb THEN]%%checked%%[ENDIF]%%> Climbing</label>
+
+  <p><button type="submit" style="padding:10px 18px;">Save preferences</button></p>
+</form>
+%%[ ELSE ]%%
+  <p>We couldn't find that subscriber link. Please open the preference
+  link from a recent email, or contact support.</p>
+%%[ ENDIF ]%%
+
+</body>
+</html>
