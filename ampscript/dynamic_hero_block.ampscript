@@ -1,0 +1,58 @@
+%%[
+/* ============================================================
+   Dynamic hero block — one template, three audiences
+   Used by: Welcome email 2 and the Win-back send.
+   Inputs:  Sends from a segment DE carrying SubscriberKey,
+            FirstName, LoyaltyTier, PreferredStore.
+   Rules:   - First name falls back to "there" — never blank.
+            - Tier decides the offer line.
+            - Store line renders ONLY if a store exists.
+            - Offer code comes from the segment DE when the
+              send is a win-back; welcome sends use WELCOME-10.
+   Failure mode: every lookup is wrapped so a missing value
+   degrades to default copy. This block must never error a send.
+   ============================================================ */
+
+VAR @firstName, @tier, @store, @offerCode, @subjectBand
+SET @firstName = AttributeValue("FirstName")
+SET @tier      = AttributeValue("LoyaltyTier")
+SET @store     = AttributeValue("PreferredStore")
+SET @offerCode = AttributeValue("OfferCode")
+
+IF EMPTY(@firstName) THEN
+  SET @firstName = "there"
+ENDIF
+
+IF EMPTY(@offerCode) THEN
+  SET @offerCode = "WELCOME-10"
+ENDIF
+
+/* Subject-line band, set here so the subject line and the hero
+   never disagree with each other. */
+IF @tier == "Gold" THEN
+  SET @subjectBand = "Gold early access"
+ELSEIF @tier == "Silver" THEN
+  SET @subjectBand = "A little thank-you"
+ELSE
+  SET @subjectBand = "Made for your next trip out"
+ENDIF
+]%%
+
+<!-- HERO -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+  <tr>
+    <td style="font-family:Arial, sans-serif; padding:24px;">
+      <h1 style="margin:0 0 8px;">Hey %%=v(@firstName)=%%, %%=Lowercase(v(@subjectBand))=%% is on.</h1>
+      <p style="margin:0 0 12px;">
+        Use code <strong>%%=v(@offerCode)=%%</strong> before Sunday.
+        %%[ IF NOT EMPTY(@store) THEN ]%%
+        Your nearest store: <strong>%%=v(@store)=%%</strong> — order online, pick up in store.
+        %%[ ENDIF ]%%
+      </p>
+      <a href="%%=RedirectTo(Concat('https://www.northwind-outfitters.example/shop?offer=', @offerCode))=%%"
+         style="background:#1d4ed8; color:#ffffff; padding:12px 20px; text-decoration:none; border-radius:6px; display:inline-block;">
+        Shop the offer
+      </a>
+    </td>
+  </tr>
+</table>
